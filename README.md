@@ -36,7 +36,7 @@ To install **recocam**, you must connect with the the University of Sydney's ent
 ``` {r installing packages, eval=FALSE}
 #something like this, placeholder now
 library(devtools)
-install_github("https://github.sydney.edu.au/informatics/recocam")
+install_github("https://github.com/Sydney-Informatics-Hub/recocam")
 ```
 ### Citing recocam
 

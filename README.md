@@ -41,4 +41,4 @@ If you have any questions about this package, run into any issues, or simply wan
 
 ### Citing recocam
 
-If you use recocam for a publication, presentation, or any form professional application, please cite recocam as well as the Sydney Informatics Hub, a Core Research Facility of the University of Sydney
+If you use recocam for a publication, presentation, or any form professional application, please cite recocam as well as the Sydney Informatics Hub, a Core Research Facility of the University of Sydney.

@@ -1,0 +1,9 @@
+^recocam\.Rproj$
+^\.Rproj\.user$
+^LICENSE\.md$
+^\.travis\.yml$
+^data-raw$
+^CODEOWNERS\.txt$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

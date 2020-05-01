@@ -1,0 +1,60 @@
+Package: recocam
+Title: Extract and process image annotations stored in EXIF data, and prepare camera trap data for camtrapr
+Version: 1.0.0.0
+Authors@R:
+    c(person(given = "Vijay",
+           family = "Raghunath",
+           role = c("aut", "ctb"),
+           email = "vijay.raghunath@sydney.edu"),
+    person(given = "Henry",
+            family = "Lydecker", 
+            email = "henry.lydecker@sydney.edu.au",
+            role = c("aut", "cre", "ctb"),
+            comment = c(ORCID = "0000-0002-7798-0903")),
+    person(given = "Darya",
+           family = "Vanichkina",
+           role = c("aut", "ctb"),
+           email = "darya.vanichkina@sydney.edu.au"))
+Description: The recocam R package provides robust tools for extracting and processing information and annotations
+    that have been stored in image EXIF data. This package was built to support ecologists who have to deal with 
+    large numbers of images from camera traps and to prepare them for analysis with the camtrapr packahe, but it 
+    can work with all sorts of images as long as they contain annotation that have been stored in the keywords EXIF
+    attribute field. This package was developed by the Sydney Informatics Hub, a Core Research Facility of the
+    University of Sydney.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.0.2
+Suggests: 
+    knitr,
+    leaflet,
+    leaflet.extras,
+    leaflet.providers,
+    raster,
+    rgdal,
+    rmarkdown,
+    sf,
+    sp,
+    testthat (>= 2.1.0),
+    tidyverse
+VignetteBuilder: knitr
+Depends: 
+        R (>= 3.1.0)
+Imports: 
+    camtrapR,
+    dplyr,
+    exifr,
+    fs,
+    janitor,
+    lubridate,
+    magrittr,
+    purrr,
+    readr,
+    reshape2,
+    stats,
+    stringr,
+    tibble,
+    tidyr,
+    utils,
+    progress

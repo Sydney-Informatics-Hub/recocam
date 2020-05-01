@@ -1,0 +1,369 @@
+---
+title: "Wrangling camera trap images with recocam"
+author: "Henry Lydecker"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+    toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{Wrangling camera trap images with recocam} 
+  %\VignetteEngine{knitr::rmarkdown}
+  %\usepackage[utf8]{inputenc}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+## Overview
+
+**recocam** provides robust tools for extracting and processing information and annotations that are stored in image EXIF metadata. While this package provides tools that are useful for any images, it includes several functions that are optimized to help ecolgoists prepare manually tagged camera trap images for analysis with the **camtrapR** package.
+
+This package is designed to be computationally efficient and can process multiple subfolders full of images, but be aware that processing time goes up as more images are included.
+
+# Installation
+
+Before you can install and use **exifpro2xamtrapr**, you must install one program (**ExifTool**, a free and open source program for extracting image metadata) and a few R packages (notably **exifr** to enable efficient use of **ExifTool**, with **reshape2** and **Tidyverse** providing some important code functionality).
+
+### ExifTool
+
+The method for installing **ExifTool** on your computer varies depending on if you are using MacOS/Linux/Unix or Windows. You can find out more about **ExifTool** and download the software [here](https://exiftool.org/).
+
+On MacOS/Linux/Unix, simply follow the steps provided on **ExifTool**'s website. For Windows, you will have take a couple extra steps to ensure that R is able to utilize **ExifTool**. Once you have downloaded the stand-alone executable, unzip the file and rename the .exe file to "exiftool.exe". Then place this file in your primary windows directory (C:/Windows in most cases). Once you have done this, R should be able to find **ExifTool**.
+
+To make sure that you have correctly installed **ExifTool**:
+```{r exif tool stuff}
+#Check if your system is able to find ExifTool
+Sys.which("exiftool")
+
+#This is what you would see on MacOS. On Windows, you should see "C:\\WINDOWS\\exiftool.exe"
+```
+
+### R packages
+
+Currently, you need to install **devtools** before you can install this package.
+```{r package installing, eval=FALSE}
+install.packages("devtools")
+```
+
+### recocam
+
+To install **recocam**, you must connect with the the University of Sydney's enterprise Github page. 
+
+``` {r installing packages, eval=FALSE}
+#something like this, placeholder now
+library(devtools)
+install_github("https://github.sydney.edu.au/informatics/recocam")
+```
+
+```{r loading, message=FALSE}
+library(recocam)
+library(tidyverse)
+library(lubridate)
+library(janitor)
+```
+***
+# Using recocam
+
+## Workflow
+
+The workflow for **recocam** has three main steps. Each of these steps involves its own unique functions that together greatly simplify the process of dealing with camera trap images.
+
+  * Extracting and transforming raw data
+    + Reading information from image exif data
+    + Mapping image exif data to your tagging scheme
+  * Transforming your data into a form that can be used with **camtrapr**
+  * Creating a **recordsTable** with rows for each observation
+  * Creating a **ctTable** with information about camera trap efforts 
+
+## Data preperation
+
+This package assumes that you have a set of camera trap photos that have been tagged with information about the camera, trip, species sighted, etc. This sort of tagging is usually done manually either through a program like ExifPro or some other way of adding information to image files.
+
+Before you start, you will want to have three things prepared in advance. First, is the path to the images that you want to analyse. You can find this by right/command clicking on the folder and clicking "properties" or "get info" respectively if you are using Windows or MacOS.  
+
+Second, you will need to provide a csv file with information that will be used to label the tags within the keywords exif attribute of your images. Your csv file must have two columns: the first containing the number of each tag (the "Index"), and the second with a label for what each tag is representing (the "ExifAttribute"). Here is an example, from the tagging scheme used by the Desert Ecology Research Group at the University of Sydney:
+
+```{r example keyword spreadsheet, echo= FALSE, message= FALSE}
+keywords_example <- read_csv(system.file("extdata/keywords.csv", package="recocam"), col_names = TRUE)
+  
+
+head(keywords_example)
+```
+
+
+Finally, you will need to provide a csv file containing information about your camera trap locations. In this example (also from DERG), there are geographic (latitude and longitude) coordinates for each camera location. For the purposes of this vignette, we have replaced the actual coordinates with some random points chosen near Concordia Station in Antarctica to protect the locations of any endangered and protected species.
+
+
+```{r example site info, echo= FALSE, message= FALSE, warning=FALSE}
+stations_example <- read_csv(system.file("extdata/CamSitesDemo.csv", package="recocam"), col_names = TRUE)
+
+head(stations_example)
+```
+
+
+## Importing data with *gather_images*
+
+The *gather_images* function extracts information contained in the EXIF data of your images and transforms that information into something much more easily usable for further analysis, using your keywords spreadsheet to help correctly interpret the information in the exif attributes of each image. 
+
+That also means that this function is the most computationally complex in this package. For example, it takes approximately one minute to process 10,000 images that are stored on a solid state hard drive; it takes far longer to process images that are stored on a remote server. We recommend that you transfer images onto your hard drive when using this function.
+
+```{r data importing steps, message = FALSE}
+image_folder <- system.file("extdata/testimages", package="recocam")
+keywords <- system.file("testdata/keywords.csv", package="recocam")
+
+test_raw <- gather_images(image_folder, keywords)
+
+glimpse(test_raw)
+```
+
+You can now see that there is a large tibble containing all of the information that was extracted from your images.
+
+If you want to analyse your data with **camtrapr**, you next will need to use the prep_camtrapr() function to process perform some transformations on the data. This function makes one big assumption: that you have tagged your images following this scheme: individual species in images identified by "species_1", "species_2", etc. and counts of each species identified by "no_of_species_1" etc. This function will work with any number of possible species in an image, but by default it will look for two species.
+```{r prep camtrapr, message=FALSE, warning=FALSE}
+season1_raw <- readRDS(system.file("extdata/vignette_raw1.Rds", package="recocam"))
+
+season1_clean <- prep_camtrapr(season1_raw, number_of_species = 2)
+
+```
+## Creating a recordsTable
+
+The first data frame that we want to create is what **camtrapR** calls a "recordsTable". This function is adapted from their package, and will create a recordsTable based on the data we just extracted from your images.
+
+```{r recordTable, message = FALSE, warning=FALSE}
+
+season1_records <- make_recordtable(season1_clean)
+
+```
+
+## Creating a ctTable
+
+Finally, you can use a file containing informations about your camera trap locations to create a data frame with information about camera efforts, also known as a "ctTable", for analysis in **camtrapR**. Note that you need to specify the "trip": this is the particular trapping season or period you are analysing and it should be written as a three letter month and abbreviated year seperated with a period. For example: if you are analyzing images from June 2010, you would abbreviate this as "Jun.10".
+
+```{r data ctTable, message = FALSE, warning=FALSE}
+camsites <- system.file("extdata/CamSitesDemo.csv", package="recocam")
+
+season1_efforts <- make_effortstable(season1_clean, camsites, trip = "Jun.10")
+
+```
+
+## Working with multiple data sets
+
+If you'd like to combine information from multiple seasons together, you can merge these tables in several different ways using functions from the **dplyr** package.
+
+First, lets load in some files from another fieldwork season.
+```{r load additional files}
+season2_clean <- readRDS(system.file("/extdata/vignette_clean2.Rds", package= "recocam"))
+season2_records <- readRDS(system.file("/extdata/vignette_records2.Rds", package= "recocam"))
+season2_efforts <- readRDS(system.file("/extdata/vignette_efforts2.Rds", package= "recocam"))
+```
+
+Next, we will simply join these files with the ones from the season that we just processed.
+
+```{r merging files}
+merged_images_clean <- dplyr::bind_rows(season1_clean, season2_clean)
+merged_records <- dplyr::bind_rows(season1_records, season2_records)
+merged_efforts <- dplyr::bind_rows(season1_efforts, season2_efforts)
+```
+
+You can now perform operations on these as normal.
+
+***
+# Example analysis with camtrapR
+```{r loading camtrapR, message= FALSE}
+library(camtrapR)
+library(rgdal)
+```
+
+You can now take the two output data frames and use them for a wide variety of analyses with **camtrapR**. Here are examples, based on **camtrapR**'s [data exploration vignette](https://cran.r-project.org/web/packages/camtrapR/vignettes/DataExploration.html).
+
+## Activity density analysis
+
+Activity density plots can be easily generated using camtrapR. One important thing to note is that there are many different arguments for the "activityDensity" function, and it is very important to make sure that you specify the names of the particular columns that your data is coming from.
+
+```{r camtrapR activity density, eval=FALSE}
+activityDensity(recordTable = season1_records,
+                allSpecies = TRUE,
+                speciesCol = "species",
+                recordDateTimeCol = "date_time_original"
+                )
+```
+
+One particularly useful feature of **camtrapR** is the ability to plot the activity of two different species at the same time. For example, here the activity of two potentially competing predators is plotted. These observations can provide very useful insights about how different species may or may not be interacting, or utilizing different times of the day.
+
+```{r camtrapR activity overlap}
+activityOverlap(recordTable = season1_records,
+                speciesA = "cat",
+                speciesB = "dingo",
+                speciesCol = "species",
+                recordDateTimeCol = "date_time_original",
+                writePNG    = FALSE,
+                plotR       = TRUE,
+                createDir   = FALSE,
+                pngMaxPix   = 1000,
+                linecol     = c("black", "blue"),
+                linewidth   = c(5,3),
+                linetype    = c(1, 2),
+                olapcol     = "darkgrey",
+                add.rug     = TRUE,
+                extend      = "lightgrey",
+                ylim        = c(0, 0.25),
+                main        = paste("Activity overlap: cats vs dingos")
+)
+```
+
+## Spatial Analysis
+
+### Richness and Abundance
+
+You can easily plot species richness observed at each of your cameras.
+
+```{r camtrapR spatial analysis species richness, message= FALSE}
+maptest1 <- detectionMaps(CTtable = season1_efforts,
+                          recordTable = season1_records,
+                          Xcol = "long",
+                          Ycol = "lat",
+                          stationCol = "site",
+                          speciesCol = "species",
+                          printLabels  = TRUE,
+                          richnessPlot = TRUE,    
+                          speciesPlots = FALSE,
+                          addLegend    = TRUE
+)
+```
+
+Or you can plot abundance of individual species. 
+
+```{r camtrapR spatial analysis cat abundance, message= FALSE}
+season1_cats <- season1_records[season1_records$species == "cat",]
+
+season1_catmap <- detectionMaps(CTtable      = season1_efforts,
+                           recordTable   = season1_cats,
+                           Xcol = "long",
+                           Ycol = "lat",
+                           stationCol = "site",
+                           speciesCol = "species",
+                           printLabels  = TRUE,
+                           richnessPlot = FALSE,    
+                           speciesPlots = TRUE,
+                           addLegend    = TRUE
+)
+```
+
+You can then make observations about the differing distributions and ranges of different species in your study area.
+
+```{r camtrapR spatial analysis fox abundance, echo=FALSE, message= FALSE}
+season1_fox <- season1_records[season1_records$species == "fox",]
+
+season1_foxmap <- detectionMaps(CTtable      = season1_efforts,
+                           recordTable   = season1_fox,
+                           Xcol = "long",
+                           Ycol = "lat",
+                           stationCol = "site",
+                           speciesCol = "species",
+                           printLabels  = TRUE,
+                           richnessPlot = FALSE,    
+                           speciesPlots = TRUE,
+                           addLegend    = TRUE
+)
+```
+
+### Shapefiles
+
+You can also export shapefiles of your data. Shapefiles can be used to perform powerful spatial analysis or create easily understandably and engaging maps.
+
+```{r camtrapR spatial analysis 1, message=FALSE, warning=FALSE}
+shapefileName <- "VignetteShp"
+shapefileProjection <- "+init=epsg:4326"
+
+Mapstest3 <- detectionMaps(CTtable = season1_efforts,
+                           recordTable = season1_records,
+                           Xcol = "long",
+                           Ycol = "lat",
+                           stationCol = "site",
+                           speciesCol = "species",
+                           richnessPlot        = FALSE,         # no richness plot
+                           speciesPlots        = FALSE,         # no species plots
+                           writeShapefile      = TRUE,          # but shaepfile creation
+                           shapefileName       = shapefileName,
+                           shapefileDirectory  = tempdir(), 
+                           shapefileProjection = shapefileProjection
+)
+```
+
+Lets check if that shapefile works! Alternatively, you can also open this shapefile in your preferred GIS programme.
+
+```{r camtrapR spatial analysis 2, results="hide", message= FALSE}
+season1_shapefile <- readOGR(dsn   = tempdir(), 
+                         layer = "VignetteShp")
+
+season1_shapefile@data
+
+detections_spdf <- SpatialPointsDataFrame(coords      = Mapstest3[,c("lat", "long")],
+                                          data        = Mapstest3,
+                                          proj4string = CRS(shapefileProjection))
+
+str(detections_spdf)
+```
+
+
+## Example with leaflet
+
+While **camtrapR** contains some useful tools for plotting maps, you can now take this data and plot maps using popular packages such as **ggplot2** and **leaflet**. Both of these provide very powerful options for visualizing your data and creating publication ready graphics.
+
+In this quick example, I'll show you how you can use **leaflet** to visualize the shapefile exported by **camtrapR**.
+
+First, we will load in the required packages and bring the shapefile back in to R.
+```{r visualization in other packages}
+library(sf)
+library(sp)
+season1_shapefile <- system.file("/extdata/VignetteShp.shp", package = "recocam")
+
+cam_shp <- readOGR(season1_shapefile)
+
+cam_shp <- spTransform(cam_shp, CRS("+init=epsg:4326"))
+```
+
+Next, lets plot it with **leaflet**. 
+
+```{r leaflet example}
+library(leaflet)
+library(leaflet.extras)
+library(leaflet.providers)
+# define a palette based on our shapefile
+pal <- colorNumeric(
+  palette = "Spectral",
+  domain = cam_shp$n_specs
+)
+
+cam_shp %>% leaflet() %>% 
+  addProviderTiles(providers$Stamen.Terrain,
+                   options = providerTileOptions(noWrap = TRUE),
+                   group = "Map") %>% 
+  addProviderTiles(providers$Esri.WorldImagery,
+                   options = providerTileOptions(noWrap = TRUE),
+                   group = "Satellite")  %>%
+  addCircleMarkers(stroke = FALSE,
+                   fillOpacity = 1,
+                   radius = ~n_specs,
+                   color= ~pal(cam_shp$n_specs),
+                   label = ~site
+                   ) %>% 
+  addLayersControl(baseGroups = c("Map", "Satellite")) %>% 
+  addLegend(position = "topright",
+            pal = pal,
+            values = cam_shp$n_specs,
+            title = "Species Richness",
+            opacity = 1,
+            group = "Richness") %>% 
+  addScaleBar(position="bottomleft") %>% 
+  addMiniMap()
+```
+
+

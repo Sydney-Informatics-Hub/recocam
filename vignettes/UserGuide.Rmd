@@ -361,4 +361,27 @@ cam_shp %>% leaflet() %>%
   addMiniMap()
 ```
 
+# Bonus Tips and Tricks
 
+## Removing columns from data
+
+What if you decide to merge two data frames of data extracted from images using gather_images(), and R gives you an error message telling you that it cannot merge these two data frames because there are different numbers of columns? Don't panic! This situation could be caused by a couple different things, and it is pretty easy to work around it.
+
+```{r head and glimpse}
+head(test_raw)
+glimpse(test_raw)
+```
+
+To start, diagnose why there are different numbers of columns. Data exploration functions like head() and tibble::glimpse() can be very useful for this. Use these to see what columns each of your data frames share, and which ones they don't. To merge them together easily, you want to make sure that both data frames have exactly the same columns.
+
+So, from head() and glimpse() we know that are data frame has 16 columns. But what if we want to merge it with one that has 15 columns, and we've identified that the data frame we want to merge with does not have a "comments" column? We can deal with this very easily using dplyr::select().
+
+```{r select demo}
+
+test_raw2 <- test_raw %>% 
+  dplyr::select(!comments) # by writing "!comments", we are actually selecting all columns except for comments
+
+test_raw2
+```
+
+You can now see that we have removed the comments column. Now to merge this data frame with that hypothetical comments-less data frame, you can use dplyr::bind_rows()

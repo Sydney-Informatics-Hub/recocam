@@ -66,6 +66,12 @@ If you use recocam for a publication, presentation, or any form professional app
 ***
 # Using recocam
 
+```{r package loading}
+library(recocam)
+library(tidyverse) # this should automatically load, but just in case it doesn't here is the command
+```
+
+
 ## Workflow
 
 The workflow for **recocam** has three main steps. Each of these steps involves its own unique functions that together greatly simplify the process of dealing with camera trap images.
@@ -86,7 +92,7 @@ Before you start, you will want to have three things prepared in advance. First,
 Second, you will need to provide a csv file with information that will be used to label the tags within the keywords exif attribute of your images. Your csv file must have two columns: the first containing the number of each tag (the "Index"), and the second with a label for what each tag is representing (the "ExifAttribute"). Here is an example, from the tagging scheme used by the Desert Ecology Research Group at the University of Sydney:
 
 ```{r example keyword spreadsheet, echo= FALSE, message= FALSE}
-keywords_example <- read_csv(system.file("extdata/keywords.csv", package="recocam"), col_names = TRUE)
+keywords_example <- readr::read_csv(system.file("extdata/keywords.csv", package="recocam"), col_names = TRUE)
   
 
 head(keywords_example)

@@ -47,13 +47,6 @@ Sys.which("exiftool")
 #This is what you would see on MacOS. On Windows, you should see "C:\\WINDOWS\\exiftool.exe"
 ```
 
-### R packages
-
-```{r package installing, eval=FALSE}
-library("devtools")
-install_github("https://github.com/Sydney-Informatics-Hub/recocam")
-```
-
 ### recocam
 
 To install **recocam**, you can download it from the Sydney Informatics Hub's github.
@@ -61,7 +54,7 @@ To install **recocam**, you can download it from the Sydney Informatics Hub's gi
 ``` {r installing packages, eval=FALSE}
 #something like this, placeholder now
 library(devtools)
-install_github("https://github.sydney.edu.au/informatics/recocam")
+install_github("https://github.com/Sydney-Informatics-Hub/recocam")
 ```
 
 If you have any questions about this package, run into any issues, or simply want to see what is going on with development of **recocam**, check out the repository's issues page [here](https://github.com/Sydney-Informatics-Hub/recocam/issues).

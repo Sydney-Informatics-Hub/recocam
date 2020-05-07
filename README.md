@@ -23,12 +23,12 @@ The method for installing **ExifTool** on your computer varies depending on if y
 On MacOS/Linux/Unix, simply follow the steps provided on **ExifTool**'s website. For Windows, you will have take a couple extra steps to ensure that R is able to utilize **ExifTool**. Once you have downloaded the stand-alone executable, unzip the file and rename the .exe file to "exiftool.exe". Then place this file in your primary windows directory (C:/Windows in most cases). Once you have done this, R should be able to find **ExifTool**.
 
 To make sure that you have correctly installed **ExifTool**:
-
 ```{r exif tool stuff}
 #Check if your system is able to find ExifTool
 Sys.which("exiftool")
-```
 
+#This is what you would see on MacOS. On Windows, you should see "C:\\WINDOWS\\exiftool.exe"
+```
 ### recocam
 
 To install **recocam**, you can download it from the Sydney Informatics Hub's github. 

@@ -2,9 +2,6 @@
 
 # recocam
 
-<!-- badges: start -->
-[![Travis build status](https://travis-ci.org/informatics/recocam.svg?branch=master)](https://travis-ci.org/informatics/recocam)
-<!-- badges: end -->
 
 **recocam** provides robust tools for extracting and processing information and annotations that have been stored in image EXIF data. This package was built to support ecologists who have to deal with large numbers of images from camera traps and to prepare them for analysis with the camtrapr packahe, but it can work with all sorts of images as long as they contain annotation that have been stored in the keywords EXIF attribute field. This package was developed by the Sydney Informatics Hub, a Core Research Facility of the University of Sydney.
 

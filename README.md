@@ -3,7 +3,7 @@
 # recocam
 
 
-**recocam** provides robust tools for extracting and processing information and annotations that have been stored in image EXIF data. This package was built to support ecologists who have to deal with large numbers of images from camera traps and to prepare them for analysis with the camtrapr packahe, but it can work with all sorts of images as long as they contain annotation that have been stored in the keywords EXIF attribute field. This package was developed by the Sydney Informatics Hub, a Core Research Facility of the University of Sydney.
+**recocam** provides robust tools for extracting and processing information and annotations that have been stored in image EXIF data. This package was built to support ecologists who have to deal with large numbers of images from camera traps and to prepare them for analysis with the camtrapr package, but it can work with all sorts of images as long as they contain annotation that have been stored in the keywords EXIF attribute field. This package was developed by the Sydney Informatics Hub, a Core Research Facility of the University of Sydney.
 
 This package is designed to be computationally efficient and can process multiple subfolders full of images, but be aware that processing time goes up as more images are included. Current processing speed for the main importing function gather_images() is around 100 images a second.
 

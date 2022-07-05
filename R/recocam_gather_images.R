@@ -65,7 +65,8 @@ gather_images <- function(images_path, # path to folder(s) containing images
     dplyr::mutate_all(as.character) # turn all columns into characters. Trust me this makes things better in the long run.
   # pivot the keyword tags list wider so we can do stuff with it
   keyword_tags_clean <- keyword_tags %>%
-    dplyr::rename(number = index)
+    dplyr::rename(number = index) %>%
+    mutate(number = gsub("\\)","",number))
   # then use this pivoted keyword tag list to generate a dataframe with column names that are the number of the keyword tag, and values that are the keyword tags
   keyword_numbers <- keyword_tags_clean %>%
     tidyr::pivot_wider(names_from = number, values_from = exif_attribute)
@@ -74,12 +75,15 @@ gather_images <- function(images_path, # path to folder(s) containing images
   message("Almost done!")
   df_joined <- suppressMessages(dplyr::full_join(df_wider, keyword_numbers))
   # Create two character vectors to specify the columns in the dataframe to target and the new names to give them
-  tag_numbers <- colnames(keyword_tags_clean %>% tidyr::pivot_wider(names_from = number, values_from = exif_attribute))
+  tag_numbers <- colnames(keyword_tags_clean %>%  tidyr::pivot_wider(names_from = number, values_from = exif_attribute))
   tag_names <- colnames(keyword_tags_clean %>% tidyr::pivot_wider(names_from = exif_attribute, values_from = number))
   # now reorganize and rename the keyword tag columns based on the number of the keywords using the two character vectors that we just created
   df_fixed <- df_joined %>%
     dplyr::select(all_of(tag_numbers), everything()) %>%
     dplyr::rename_at(dplyr::vars(all_of(tag_numbers)), ~ tag_names)
+
+  # TODO: Find a better solution so we don't have to do stupid things like this.
+  df_fixed <- head(df_fixed, -1)
 
   # count how many images have been processed
   processed_count <- nrow(df_fixed)

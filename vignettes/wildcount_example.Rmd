@@ -1,0 +1,34 @@
+---
+title: "Wildcount Testing"
+author: "Dr. Henry Lydecker"
+date: "26/07/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+First, make sure that you have reinstalled **recocam**.
+
+```{r}
+install_github("https://github.com/Sydney-Informatics-Hub/recocam", upgrade = "always")
+library(recocam)
+library(tidyverse)
+```
+
+Next, read in the images and use your keyword file to map the column names.
+
+```{r}
+wc_keywords <- "index_exifattribute.csv"
+image_folder <- "new_data"
+
+test_raw <- gather_images(image_folder, wc_keywords, tag_sep = "\\)\\s")
+```
+
+Finally, prepare for analysis with **captrapr**:
+
+```{r}
+test_camtrapr  <- prep_camtrapr(test_raw, number_of_species = 3, wildcount = TRUE)
+```
+

@@ -46,15 +46,26 @@ prep_camtrapr <- function(df_fixed,
       names_to = c(".value", "species_id"),
       names_pattern = "(.*)_(\\d+)$"
     )
+
+    # pivot species/count pairs into one unified pair
+    species_pivoted <- tidyr::pivot_longer_spec(species_data, species_spec)
+
+    # FIXME: This is a dangerous solution!!!
+    species_pivoted <- species_pivoted %>%
+      mutate(number_new_detection = if_else(
+        is.na(number_new_detection) &
+          !is.na(species),
+        1,
+        as.numeric(number_new_detection)
+      ))
+
+    # finally rename the column containing counts
+    df_total <- species_pivoted %>%
+      dplyr::rename(count = number_new_detection) %>%
+      dplyr::mutate_all(as.character) # also make everything characters again to avoid potential issues!
+
   }
 
-  # pivot species/count pairs into one unified pair
-  species_pivoted <- tidyr::pivot_longer_spec(species_data, species_spec)
-
-  # finally rename the column containing counts
-  df_total <- species_pivoted %>%
-    dplyr::rename(count = no_of_species) %>%
-    dplyr::mutate_all(as.character) # also make everything characters again to avoid potential issues!
 
 message("Your data is now ready for analysis with camtrapr!")
 

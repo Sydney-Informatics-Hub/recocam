@@ -61,7 +61,7 @@ prep_camtrapr <- function(df_fixed,
 
     # finally rename the column containing counts
     df_total <- species_pivoted %>%
-      dplyr::rename(count = number_new_detection) %>%
+      mutate(count = number_new_detection) %>%
       dplyr::mutate_all(as.character) # also make everything characters again to avoid potential issues!
 
   }
